@@ -1,0 +1,260 @@
+@startuml
+
+title __WEBVIEW's Class Diagram__\n
+/' region MainActivity '/
+namespace org.mozilla.focus {
+  note top of FocusApplication : Application entry point
+  class FocusApplication {
+    + components : Components
+    - enableStrictMode()
+  }
+
+  class Components {
+    + sessionManager: SessionManager
+    + searchEngineManager : SearchEngineManager
+  }
+
+  namespace activity {
+    class MainActivity {
+      # isCustomTabMode: Boolean
+      # currentSessionForActivity: Session
+      - intentProcessor: IntentProcessor
+      - previousSessionCount: Int
+      - registerSessionObserver()
+      - showUrlInputScreen()
+      - showBrowserScreenForCurrentSession()
+      - checkBiometricStillValid()
+    }
+
+    class SettingsActivity {
+      {static} + SHOULD_OPEN_PRIVACY_EXTRA: "shouldOpenPrivacy"
+      {static} + SHOULD_OPEN_MOZILLA_EXTRA: "shouldOpenMozilla"
+      {static} + SHOULD_OPEN_GENERAL_EXTRA = "shouldOpenGeneral"
+    }
+  }
+
+  namespace biometrics {
+    class Biometrics {
+      + hasFingerprintHardware(context: Context): Boolean
+      + isBiometricsEnabled(context: Context): Boolean
+    }
+  }
+
+  namespace fragment {
+    class WebFragment {
+
+    }
+    class BrowserFragment {
+
+    }
+  }
+
+  namespace locale {
+    class LocaleAwareAppCompatActivity {
+
+    }
+    class LocaleAwareApplication {
+
+    }
+    class LocaleAwareFragment {
+
+    }
+  }
+
+  namespace session {
+    class IntentProcessor {
+      + handleIntent(context: Context, intent: SafeIntent, savedInstanceState: Bundle?): Session?
+      + handleNewIntent(context: Context, intent: SafeIntent)
+      - createSessionFromIntent(context: Context, intent: SafeIntent) : Session?
+      - createSession(source: Session.Source, url: String): Session
+    }
+  }
+
+  namespace web {
+    interface IWebViewProvider {
+      {abstract} + preload(context: Context)
+      {abstract} + create(context: Context, attributeSet: AttributeSet?): View
+      {abstract} + performCleanup(context: Context)
+      {abstract} + performNewBrowserSessionCleanup()
+      {abstract} + requestMobileSite(context: Context, webSettings: WebSettings)
+      {abstract} + requestDesktopSite(webSettings: WebSettings)
+      {abstract} + applyAppSettings(context: Context, webSettings: WebSettings, systemWebView: SystemWebView)
+      {abstract} + disableBlocking(webSettings: WebSettings, systemWebView: SystemWebView)
+      {abstract} + getUABrowserString(existingUAString: String, focusToken: String): String
+    }
+
+    interface IWebView {
+      {abstract} + canGoBack()
+      {abstract} + canGoForward()
+      {abstract} + cleanup()
+      {abstract} + clearMatches()
+      {abstract} + destroy()
+      {abstract} + exitFullscreen()
+      {abstract} + findAllAsync()
+      {abstract} + findNext()
+      {abstract} + getTitle()
+      {abstract} + getUrl()
+      {abstract} + goBack()
+      {abstract} + goForward()
+      {abstract} + loadData()
+      {abstract} + loadUrl()
+      {abstract} + onPause()
+      {abstract} + onResume()
+      {abstract} + releaseGeckoSession()
+      {abstract} + reload()
+      {abstract} + restoreWebViewState()
+      {abstract} + saveWebViewState()
+      {abstract} + setBlockingEnabled()
+      {abstract} + setCallback()
+      {abstract} + setFindListener()
+      {abstract} + setRequestDesktop()
+      {abstract} + stopLoading()
+    }
+
+    class WebViewProvider {
+      + engine: IWebViewProvider
+    }
+    class ClassicWebViewProvider {
+    }
+    class GeckoWebViewProvider {
+    }
+  }
+
+  namespace webview {
+    class NestedWebView {
+
+    }
+    class SystemWebView {
+      - client: FocusWebViewClient
+    }
+
+    class TrackingProtectionWebViewClient {
+      + isBlockingEnabled()
+      + shouldInterceptRequest(final WebView view, final WebResourceRequest request): WebResourceResponse
+      + notifyCurrentURL(final String url)
+      + onPageStarted(WebView view, String url, Bitmap favicon)
+      + onReceivedHttpAuthRequest(WebView view, final HttpAuthHandler handler, String host, String realm)
+    }
+    class FocusWebViewClient {
+
+    }
+  }
+
+}
+
+namespace android {
+  namespace webkit {
+    class WebViewClient {
+    }
+    class WebView {
+    }
+  }
+
+  namespace app {
+    class Application {
+
+    }
+  }
+}
+
+
+namespace androidx.fragment.app {
+  namespace appcompat {
+    namespace app {
+      class AppCompatActivity {
+
+      }
+    }
+  }
+
+  namespace fragment {
+    namespace app {
+      class Fragment {
+
+      }
+    }
+  }
+  
+}
+
+/' External dependencies '/
+namespace mozilla.components.browser {
+  namespace browser {
+    class Session {
+
+    }
+
+  }
+
+  namespace search {
+    class SearchEngineManager {
+      - providers: List<SearchEngineProvider>
+      + defaultSearchEngine: SearchEngine?
+      + loadAsync(context: Context): Deferred<SearchEngineList>
+      + load(context: Context): Deferred<SearchEngineList>
+      - getSearchEngineList(context: Context): SearchEngineList
+    }
+  }
+
+  namespace session {
+    class SessionManager {
+      + size : Int
+      + createSnapshot(): Snapshot
+      + createSessionSnapshot(session: Session): Snapshot.Item
+      + selectedSession : Session
+      + sessions : List<Session>
+      + all: List<Session>
+      + add(sessions: List<Session>)
+    }
+  }
+}
+
+' application
+org.mozilla.focus.FocusApplication --|> androidx.fragment.app.fragment
+org.mozilla.focus.FocusApplication o-- org.mozilla.focus.Components
+org.mozilla.focus.activity.MainActivity -down-o org.mozilla.focus.FocusApplication
+org.mozilla.focus.Components *-up- mozilla.components.browser.session.SessionManager
+org.mozilla.focus.Components *-up- mozilla.components.browser.search.SearchEngineManager
+
+'locale
+org.mozilla.focus.locale.LocaleAwareAppCompatActivity -up-|> androidx.appcompat.app.AppCompatActivity
+org.mozilla.focus.locale.LocaleAwareApplication -up-|> android.app.Application
+org.mozilla.focus.locale.LocaleAwareFragment -up-|> androidx.fragment.app.fragment
+
+
+' web
+org.mozilla.focus.web.IWebViewProvider --> org.mozilla.focus.web.IWebView : provides
+org.mozilla.focus.web.WebViewProvider -up-|> org.mozilla.focus.web.IWebViewProvider
+org.mozilla.focus.web.ClassicWebViewProvider -up-|> org.mozilla.focus.web.IWebViewProvider
+org.mozilla.focus.web.GeckoWebViewProvider -up-|> org.mozilla.focus.web.IWebViewProvider
+
+' webview
+org.mozilla.focus.webview.SystemWebView -up-|> org.mozilla.focus.webview.NestedWebView
+org.mozilla.focus.webview.SystemWebView --|> org.mozilla.focus.web.IWebView
+org.mozilla.focus.webview.NestedWebView -up-|> android.webkit.WebView
+org.mozilla.focus.webview.TrackingProtectionWebViewClient -up-|> android.webkit.WebViewClient
+org.mozilla.focus.webview.FocusWebViewClient -up-|> org.mozilla.focus.webview.TrackingProtectionWebViewClient
+
+
+' activities
+org.mozilla.focus.activity.MainActivity ..|> org.mozilla.focus.web.WebViewProvider
+org.mozilla.focus.activity.MainActivity --> org.mozilla.focus.biometrics.Biometrics :uses
+
+' fragment
+org.mozilla.focus.fragment.WebFragment -up-|> org.mozilla.focus.locale.LocaleAwareFragment
+org.mozilla.focus.fragment.BrowserFragment -up-|> org.mozilla.focus.fragment.WebFragment
+
+' androidx
+
+
+' org.mozilla.focus.activity.MainActivity .up.|> org.mozilla.focus.web.IWebViewProvider
+
+
+right footer
+
+
+  PlantUML diagram generated by SketchIt! (https://bitbucket.org/pmesmeur/sketch.it)
+  For more information about this tool, please contact philippe.mesmeur@gmail.com
+endfooter
+
+@enduml
