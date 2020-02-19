@@ -2,7 +2,7 @@
 
 title __WEBVIEW's Class Diagram__\n
 /' region MainActivity '/
-namespace org.mozilla.focus {
+namespace org.mozilla.focus #LightYellow {
   note top of FocusApplication : Application entry point
   class FocusApplication {
     + components : Components
@@ -14,7 +14,7 @@ namespace org.mozilla.focus {
     + searchEngineManager : SearchEngineManager
   }
 
-  namespace activity {
+  namespace activity #Orange {
     class MainActivity {
       # isCustomTabMode: Boolean
       # currentSessionForActivity: Session
@@ -31,25 +31,57 @@ namespace org.mozilla.focus {
       {static} + SHOULD_OPEN_MOZILLA_EXTRA: "shouldOpenMozilla"
       {static} + SHOULD_OPEN_GENERAL_EXTRA = "shouldOpenGeneral"
     }
+
+    class CustomTabActivity {
+      - customTabId: String
+      - customTabSession: Session
+      - currentSessionForActivity: Session
+      - isCustomTabMode: Boolean
+    }
+
   }
 
-  namespace biometrics {
+  namespace biometrics #Orange {
     class Biometrics {
       + hasFingerprintHardware(context: Context): Boolean
       + isBiometricsEnabled(context: Context): Boolean
     }
   }
 
-  namespace fragment {
-    class WebFragment {
-
+  namespace fragment #Orange {
+    abstract class WebFragment {
+      - webViewInstance: IWebView
+      - isWebViewAvailable: Boolean
+      {abstract} + session: Session
+      {abstract} + initialUrl: String
+      {abstract} + inflateLayout(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View
+      {abstract} + onCreateViewCalled()
+      # getWebView(): IWebView
+      - loadInitialUrl()
+      - restoreStateOrLoadUrl()
     }
     class BrowserFragment {
-
+      - pendingDownload: Download
+      - backgroundTransitionGroup: TransitionDrawableGroup
+      - urlView: TextView
+      - progressView: AnimatedProgressBar
+      - blockView: FrameLayout
+      - securityView: ImageView
+      - menuView: ImageButton
+      - statusBar: View
+      - urlBar: View
+      - popupTint: FrameLayout
+      - swipeRefresh: SwipeRefreshLayout
+      - menuWeakReference: WeakReference<BrowserMenu>
+    }
+    class UrlInputFragment {
+      - session: Session
+      {static} createWithoutSession(): UrlInputFragment
+      {static} createWithSession(session: Session, urlView: View): UrlInputFragment
     }
   }
 
-  namespace locale {
+  namespace locale #Orange {
     class LocaleAwareAppCompatActivity {
 
     }
@@ -61,16 +93,22 @@ namespace org.mozilla.focus {
     }
   }
 
-  namespace session {
+  namespace session #Orange {
     class IntentProcessor {
       + handleIntent(context: Context, intent: SafeIntent, savedInstanceState: Bundle?): Session?
       + handleNewIntent(context: Context, intent: SafeIntent)
       - createSessionFromIntent(context: Context, intent: SafeIntent) : Session?
       - createSession(source: Session.Source, url: String): Session
     }
+
+    class SessionNotificationService {
+      - buildNotification(): Notification
+      {static} start(context: Context)
+      {static} stop(context: Context)
+    }
   }
 
-  namespace web {
+  namespace web #Orange {
     interface IWebViewProvider {
       {abstract} + preload(context: Context)
       {abstract} + create(context: Context, attributeSet: AttributeSet?): View
@@ -120,7 +158,7 @@ namespace org.mozilla.focus {
     }
   }
 
-  namespace webview {
+  namespace webview #Orange {
     class NestedWebView {
 
     }
@@ -142,43 +180,9 @@ namespace org.mozilla.focus {
 
 }
 
-namespace android {
-  namespace webkit {
-    class WebViewClient {
-    }
-    class WebView {
-    }
-  }
 
-  namespace app {
-    class Application {
-
-    }
-  }
-}
-
-
-namespace androidx.fragment.app {
-  namespace appcompat {
-    namespace app {
-      class AppCompatActivity {
-
-      }
-    }
-  }
-
-  namespace fragment {
-    namespace app {
-      class Fragment {
-
-      }
-    }
-  }
-  
-}
-
-/' External dependencies '/
-namespace mozilla.components.browser {
+/' region external dependencies '/
+namespace mozilla.components.browser #AntiqueWhite {
   namespace browser {
     class Session {
 
@@ -209,24 +213,71 @@ namespace mozilla.components.browser {
   }
 }
 
+namespace android #LightGreen {
+  namespace webkit {
+    class WebViewClient {
+    }
+    class WebView {
+    }
+  }
+
+  namespace app {
+    class Application {
+
+    }
+
+    class Service {
+
+    }
+
+    class Notification {
+
+    }
+  }
+}
+
+namespace androidx #LightGreen {
+  namespace appcompat {
+    namespace app {
+      class AppCompatActivity {
+
+      }
+    }
+  }
+
+  namespace fragment {
+    namespace app {
+      class Fragment {
+
+      }
+    }
+  }
+
+}
+
+/'end region external dependencies '/
+
 ' application
-org.mozilla.focus.FocusApplication --|> androidx.fragment.app.fragment
+org.mozilla.focus.FocusApplication -up-|> org.mozilla.focus.locale.LocaleAwareApplication
 org.mozilla.focus.FocusApplication o-- org.mozilla.focus.Components
-org.mozilla.focus.activity.MainActivity -down-o org.mozilla.focus.FocusApplication
 org.mozilla.focus.Components *-up- mozilla.components.browser.session.SessionManager
 org.mozilla.focus.Components *-up- mozilla.components.browser.search.SearchEngineManager
 
 'locale
-org.mozilla.focus.locale.LocaleAwareAppCompatActivity -up-|> androidx.appcompat.app.AppCompatActivity
-org.mozilla.focus.locale.LocaleAwareApplication -up-|> android.app.Application
-org.mozilla.focus.locale.LocaleAwareFragment -up-|> androidx.fragment.app.fragment
+org.mozilla.focus.locale.LocaleAwareAppCompatActivity --|> androidx.appcompat.app.AppCompatActivity
+org.mozilla.focus.locale.LocaleAwareApplication --|> android.app.Application
+org.mozilla.focus.locale.LocaleAwareFragment --|> androidx.fragment.app.Fragment
 
+' session
+org.mozilla.focus.session.SessionNotificationService --|> android.app.Service
+org.mozilla.focus.session.SessionNotificationService "1" -->  "0...n" android.app.Notification : creates
 
 ' web
 org.mozilla.focus.web.IWebViewProvider --> org.mozilla.focus.web.IWebView : provides
 org.mozilla.focus.web.WebViewProvider -up-|> org.mozilla.focus.web.IWebViewProvider
 org.mozilla.focus.web.ClassicWebViewProvider -up-|> org.mozilla.focus.web.IWebViewProvider
 org.mozilla.focus.web.GeckoWebViewProvider -up-|> org.mozilla.focus.web.IWebViewProvider
+org.mozilla.focus.web.IWebViewProvider --> org.mozilla.focus.webview.SystemWebView : modifies
 
 ' webview
 org.mozilla.focus.webview.SystemWebView -up-|> org.mozilla.focus.webview.NestedWebView
@@ -235,20 +286,30 @@ org.mozilla.focus.webview.NestedWebView -up-|> android.webkit.WebView
 org.mozilla.focus.webview.TrackingProtectionWebViewClient -up-|> android.webkit.WebViewClient
 org.mozilla.focus.webview.FocusWebViewClient -up-|> org.mozilla.focus.webview.TrackingProtectionWebViewClient
 
-
 ' activities
-org.mozilla.focus.activity.MainActivity ..|> org.mozilla.focus.web.WebViewProvider
+org.mozilla.focus.activity.MainActivity -up-|> org.mozilla.focus.locale.LocaleAwareAppCompatActivity
 org.mozilla.focus.activity.MainActivity --> org.mozilla.focus.biometrics.Biometrics :uses
+org.mozilla.focus.activity.MainActivity "1" -down-* "1" org.mozilla.focus.FocusApplication: contains
+
+org.mozilla.focus.activity.SettingsActivity -up-|> org.mozilla.focus.locale.LocaleAwareAppCompatActivity
+org.mozilla.focus.activity.SettingsActivity "0...1" -down-* "1" org.mozilla.focus.FocusApplication: contains
+
+org.mozilla.focus.activity.CustomTabActivity -up-|> org.mozilla.focus.activity.MainActivity
+org.mozilla.focus.activity.CustomTabActivity "n" o-- "1" mozilla.components.browser.session.Session
+org.mozilla.focus.activity.CustomTabActivity "n" --> "1" mozilla.components.browser.session.SessionManager: use
 
 ' fragment
 org.mozilla.focus.fragment.WebFragment -up-|> org.mozilla.focus.locale.LocaleAwareFragment
+org.mozilla.focus.fragment.UrlInputFragment -up-|> org.mozilla.focus.locale.LocaleAwareFragment
 org.mozilla.focus.fragment.BrowserFragment -up-|> org.mozilla.focus.fragment.WebFragment
+org.mozilla.focus.fragment.BrowserFragment "0...n" -up-> "1" mozilla.components.browser.session.SessionManager : uses
+org.mozilla.focus.fragment.WebFragment o-- org.mozilla.focus.web.IWebView: contains
+org.mozilla.focus.fragment.WebFragment "0...n" o-- "1" mozilla.components.browser.session.Session: contains
+org.mozilla.focus.fragment.BrowserFragment "0...n" --* "1" org.mozilla.focus.activity.MainActivity
+org.mozilla.focus.fragment.UrlInputFragment "0...1" --* "1" org.mozilla.focus.activity.MainActivity
 
-' androidx
-
-
-' org.mozilla.focus.activity.MainActivity .up.|> org.mozilla.focus.web.IWebViewProvider
-
+' external
+mozilla.components.browser.session.SessionManager "1" o-- "n" mozilla.components.browser.session.Session: contains
 
 right footer
 
