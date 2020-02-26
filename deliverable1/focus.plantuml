@@ -305,7 +305,7 @@ org.mozilla.focus.fragment.BrowserFragment -up-|> org.mozilla.focus.fragment.Web
 org.mozilla.focus.fragment.BrowserFragment "0...n" -up-> "1" mozilla.components.browser.session.SessionManager : uses
 org.mozilla.focus.fragment.WebFragment o-- org.mozilla.focus.web.IWebView: contains
 org.mozilla.focus.fragment.WebFragment "0...n" o-- "1" mozilla.components.browser.session.Session: contains
-org.mozilla.focus.fragment.BrowserFragment "0...n" --* "1" org.mozilla.focus.activity.MainActivity: hosts
+org.mozilla.focus.fragment.BrowserFragment "0...n" --* "1" org.mozilla.focus.activity.MainActivity
 org.mozilla.focus.fragment.UrlInputFragment "0...1" --* "1" org.mozilla.focus.activity.MainActivity
 
 ' external
