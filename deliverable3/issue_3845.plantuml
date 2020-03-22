@@ -80,7 +80,7 @@ namespace org.mozilla.focus #LightYellow {
       {static} createWithoutSession(): UrlInputFragment
       {static} createWithSession(session: Session, urlView: View): UrlInputFragment
     }
-    class HistoryFragment {
+    class HistoryFragment #Blue {
       - historyList: HistoryList
       + {static} create(webView: IWebView): HistoryFragment
     }
@@ -219,7 +219,7 @@ namespace mozilla.components.browser #AntiqueWhite {
 
 }
 
-namespace org.mozilla.geckoview {
+namespace org.mozilla.geckoview #Blue {
   class GeckoSession {
   }
 
@@ -337,12 +337,12 @@ org.mozilla.focus.fragment.UrlInputFragment "0...1" --* "1" org.mozilla.focus.ac
 mozilla.components.browser.session.SessionManager "1" o-- "n" mozilla.components.browser.session.Session: contains
 
 ' issue 3845
-org.mozilla.focus.fragment.BrowserFragment "1" --> "1" org.mozilla.focus.activity.MainActivity : creates
-org.mozilla.focus.fragment.HistoryFragment --> org.mozilla.focus.web.IWebView
-org.mozilla.focus.fragment.HistoryFragment "0...n" -- "1" org.mozilla.focus.activity.MainActivity
-org.mozilla.focus.fragment.HistoryFragment "0...n" --> "1" org.mozilla.focus.web.GeckoWebViewProvider
-org.mozilla.focus.fragment.HistoryFragment "1" --* "1" mozilla.components.browser.session.Session: contains
-org.mozilla.focus.web.GeckoWebViewProvider "0...n" o-- "0...n" org.mozilla.geckoview.HistoryList
+org.mozilla.focus.fragment.BrowserFragment "1" -[#blue]-> "1" org.mozilla.focus.activity.MainActivity : creates
+org.mozilla.focus.fragment.HistoryFragment -[#blue]-> org.mozilla.focus.web.IWebView
+org.mozilla.focus.fragment.HistoryFragment "0...n" -[#blue]- "1" org.mozilla.focus.activity.MainActivity
+org.mozilla.focus.fragment.HistoryFragment "0...n" -[#blue]-> "1" org.mozilla.focus.web.GeckoWebViewProvider
+org.mozilla.focus.fragment.HistoryFragment "1" -[#blue]-* "1" mozilla.components.browser.session.Session: contains
+org.mozilla.focus.web.GeckoWebViewProvider "0...n" o-[#blue]- "0...n" org.mozilla.geckoview.HistoryList
 
 right footer
 
