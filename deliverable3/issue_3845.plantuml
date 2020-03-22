@@ -81,8 +81,8 @@ namespace org.mozilla.focus #LightYellow {
       {static} createWithSession(session: Session, urlView: View): UrlInputFragment
     }
     class HistoryFragment {
-      - session: Session
-      {static} createWithSession(session: Session, urlView: View): HistoryFragment
+      - historyList: HistoryList
+      + {static} create(webView: IWebView): HistoryFragment
     }
   }
 
@@ -160,6 +160,7 @@ namespace org.mozilla.focus #LightYellow {
     class ClassicWebViewProvider {
     }
     class GeckoWebViewProvider {
+      + sessionHistoryMap : HashMap<GeckoSession, HistoryList>
     }
   }
 
@@ -192,7 +193,6 @@ namespace mozilla.components.browser #AntiqueWhite {
     class Session {
 
     }
-
   }
 
   namespace search {
@@ -216,7 +216,27 @@ namespace mozilla.components.browser #AntiqueWhite {
       + add(sessions: List<Session>)
     }
   }
+
 }
+
+namespace org.mozilla.geckoview {
+  class GeckoSession {
+  }
+
+  interface HistoryDelegate {
+    + onHistoryStateChange(var1 GeckoSession, var2 HistoryList)
+  }
+
+  interface HistoryList {
+    + getCurrentIndex() : int
+  }
+
+  interface HistoryList {
+    + String getUri() : String
+    + String getTitle() : String
+  }
+}
+
 
 namespace android #LightGreen {
   namespace webkit {
@@ -310,13 +330,19 @@ org.mozilla.focus.fragment.BrowserFragment -up-|> org.mozilla.focus.fragment.Web
 org.mozilla.focus.fragment.BrowserFragment "0...n" -up-> "1" mozilla.components.browser.session.SessionManager : uses
 org.mozilla.focus.fragment.WebFragment o-- org.mozilla.focus.web.IWebView: contains
 org.mozilla.focus.fragment.WebFragment "0...n" o-- "1" mozilla.components.browser.session.Session: contains
-org.mozilla.focus.fragment.HistoryFragment "0...1" --* "1" mozilla.components.browser.session.Session: contains
 org.mozilla.focus.fragment.BrowserFragment "0...n" --* "1" org.mozilla.focus.activity.MainActivity
 org.mozilla.focus.fragment.UrlInputFragment "0...1" --* "1" org.mozilla.focus.activity.MainActivity
-org.mozilla.focus.fragment.HistoryFragment "0...1" --* "1" org.mozilla.focus.activity.MainActivity
 
 ' external
 mozilla.components.browser.session.SessionManager "1" o-- "n" mozilla.components.browser.session.Session: contains
+
+' issue 3845
+org.mozilla.focus.fragment.BrowserFragment "1" --> "1" org.mozilla.focus.activity.MainActivity : creates
+org.mozilla.focus.fragment.HistoryFragment --> org.mozilla.focus.web.IWebView
+org.mozilla.focus.fragment.HistoryFragment "0...n" -- "1" org.mozilla.focus.activity.MainActivity
+org.mozilla.focus.fragment.HistoryFragment "0...n" --> "1" org.mozilla.focus.web.GeckoWebViewProvider
+org.mozilla.focus.fragment.HistoryFragment "1" --* "1" mozilla.components.browser.session.Session: contains
+org.mozilla.focus.web.GeckoWebViewProvider "0...n" o-- "0...n" org.mozilla.geckoview.HistoryList
 
 right footer
 
