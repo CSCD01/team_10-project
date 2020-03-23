@@ -220,7 +220,24 @@ namespace mozilla.components.browser #AntiqueWhite {
 }
 
 namespace org.mozilla.geckoview #LightSkyBlue {
+  class GeckoView {
+    - mSession : GeckoSession
+
+    + setSession(var1: GeckoSession)
+    + getSession() : GeckoSession
+    + restoreSession(var1: GeckoSession)
+  }
+
   class GeckoSession {
+    - mHistoryHandler : GeckoSessionHandler<HistoryDelegate>
+    + setHistoryDelegate(var1 HistoryDelegate)
+    + getHistoryDelegate() : HistoryDelegate
+  }
+
+  class GeckoSessionHandler <Delegate> {
+    - mDelegate : Delegate
+    + getDelegate() : Delegate
+    + setDelegate(var1 Delegate, var2 GeckoSession)
   }
 
   interface HistoryDelegate {
@@ -256,6 +273,12 @@ namespace android #LightGreen {
     }
 
     class Notification {
+
+    }
+  }
+
+  namespace widget {
+    class FrameLayout {
 
     }
   }
@@ -337,13 +360,27 @@ org.mozilla.focus.fragment.UrlInputFragment "0...1" --* "1" org.mozilla.focus.ac
 mozilla.components.browser.session.SessionManager "1" o-- "n" mozilla.components.browser.session.Session: contains
 
 ' issue 3845
-org.mozilla.focus.fragment.BrowserFragment "1" -[#LightSkyBlue]-> "1" org.mozilla.focus.activity.MainActivity : creates
-org.mozilla.focus.fragment.HistoryFragment -[#LightSkyBlue]-> org.mozilla.focus.web.IWebView
-org.mozilla.focus.fragment.HistoryFragment "0...n" -[#LightSkyBlue]- "1" org.mozilla.focus.activity.MainActivity
-org.mozilla.focus.fragment.HistoryFragment "0...n" -[#LightSkyBlue]-> "1" org.mozilla.focus.web.GeckoWebViewProvider
-org.mozilla.focus.fragment.HistoryFragment "1" -[#LightSkyBlue]-* "1" mozilla.components.browser.session.Session: contains
-org.mozilla.focus.web.GeckoWebViewProvider "0...n" o-[#LightSkyBlue]- "0...n" org.mozilla.geckoview.HistoryList
-org.mozilla.geckoview.HistoryItem "0...n" -[#BlueViolet]-* "1" org.mozilla.geckoview.HistoryList
+org.mozilla.focus.fragment.BrowserFragment "1" -[#BlueViolet]-> "1" org.mozilla.focus.activity.MainActivity : creates
+org.mozilla.focus.fragment.BrowserFragment "1" -[#BlueViolet]-> "1" org.mozilla.focus.activity.MainActivity : displays
+
+org.mozilla.focus.fragment.HistoryFragment -[#BlueViolet]-> org.mozilla.focus.web.IWebView
+org.mozilla.focus.fragment.HistoryFragment "0...n" -[#BlueViolet]- "1" org.mozilla.focus.activity.MainActivity
+org.mozilla.focus.fragment.HistoryFragment "0...n" -[#BlueViolet]-> "1" org.mozilla.focus.web.GeckoWebViewProvider
+org.mozilla.focus.fragment.HistoryFragment "1" -[#BlueViolet]-> "1" org.mozilla.focus.web.GeckoView
+org.mozilla.focus.fragment.HistoryFragment "1" -[#BlueViolet]-* "1" mozilla.components.browser.session.Session: contains
+org.mozilla.focus.web.GeckoWebViewProvider "1" o-[#BlueViolet]- "0...n" org.mozilla.geckoview.HistoryList
+org.mozilla.focus.web.GeckoWebViewProvider "1" o-[#BlueViolet]- "0...n" org.mozilla.geckoview.GeckoSession
+
+org.mozilla.geckoview.HistoryItem "0...n" -[#BlueViolet]-o "1" org.mozilla.geckoview.HistoryList
+
+org.mozilla.focus.fragment.HistoryFragment "1" -[#BlueViolet]-> "1" org.mozilla.geckoview.HistoryList: displays
+
+
+org.mozilla.geckoview.GeckoView  --|> android.widget.FrameLayout
+org.mozilla.geckoview.GeckoSession "1" -[#BlueViolet]-* "1" org.mozilla.geckoview.GeckoView
+org.mozilla.geckoview.HistoryDelegate "1" -[#BlueViolet]-* "1" org.mozilla.geckoview.GeckoSessionHandler
+org.mozilla.geckoview.GeckoSessionHandler "1" -[#BlueViolet]-* "11" org.mozilla.geckoview.GeckoSession
+
 right footer
 
 
