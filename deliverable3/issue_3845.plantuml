@@ -343,7 +343,7 @@ org.mozilla.focus.fragment.HistoryFragment "0...n" -[#LightSkyBlue]- "1" org.moz
 org.mozilla.focus.fragment.HistoryFragment "0...n" -[#LightSkyBlue]-> "1" org.mozilla.focus.web.GeckoWebViewProvider
 org.mozilla.focus.fragment.HistoryFragment "1" -[#LightSkyBlue]-* "1" mozilla.components.browser.session.Session: contains
 org.mozilla.focus.web.GeckoWebViewProvider "0...n" o-[#LightSkyBlue]- "0...n" org.mozilla.geckoview.HistoryList
-org.mozilla.geckoview.HistoryItem -[#BlueViolet]-o org.mozilla.geckoview.HistoryList
+org.mozilla.geckoview.HistoryItem "0...n" -[#BlueViolet]-* "1" org.mozilla.geckoview.HistoryList
 right footer
 
 
