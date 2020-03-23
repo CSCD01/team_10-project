@@ -1,0 +1,181 @@
+@startuml
+
+title __URL Shortcut Class Diagram__\n
+
+/' region MainActivity '/
+namespace org.mozilla.focus #LightYellow {
+    note top of FocusApplication : Application entry point
+    class FocusApplication {
+        + components : Components
+        - enableStrictMode()
+    }
+
+    namespace activity #Orange {
+        class MainActivity {
+            # isCustomTabMode: Boolean
+            # currentSessionForActivity: Session
+            - intentProcessor: IntentProcessor
+            - previousSessionCount: Int
+            - registerSessionObserver()
+            - showUrlInputScreen()
+            - showBrowserScreenForCurrentSession()
+            - checkBiometricStillValid()
+        }
+
+        class TextActionActivity {
+            + onCreate()
+        }
+
+    }
+
+    class SearchSuggestionsViewModel #LightSkyBlue {
+        - SearchSuggestionsFetcher : fetcher
+        - SearchSuggestionsPreferences : preferences
+        + selectSearchSuggestion(suggestion: String, alwaysSearch: Boolean)
+        + setSearchQuery(query: String)
+        + enableSearchSuggestions()
+        + disableSearchSuggestions()
+        + dismissNoSuggestionsMessage()
+        + refresh()
+        - updateState()
+    }
+
+    namespace fragment #Orange {
+        abstract class WebFragment {
+            - webViewInstance: IWebView
+            - isWebViewAvailable: Boolean
+            {abstract} + session: Session
+            {abstract} + initialUrl: String
+            {abstract} + inflateLayout(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View
+            {abstract} + onCreateViewCalled()
+            # getWebView(): IWebView
+            - loadInitialUrl()
+            - restoreStateOrLoadUrl()
+        }
+
+        class BrowserFragment {
+            - pendingDownload: Download
+            - backgroundTransitionGroup: TransitionDrawableGroup
+            - urlView: TextView
+            - progressView: AnimatedProgressBar
+            - blockView: FrameLayout
+            - securityView: ImageView
+            - menuView: ImageButton
+            - statusBar: View
+            - urlBar: View
+            - popupTint: FrameLayout
+            - swipeRefresh: SwipeRefreshLayout
+            - menuWeakReference: WeakReference<BrowserMenu>
+        }
+        class UrlInputFragment #LightSkyBlue {
+            - session: Session
+            - searchSuggestionsViewModel: SearchSuggestionsViewModel
+            {static} createWithoutSession(): UrlInputFragment
+            {static} createWithSession(session: Session, urlView: View): UrlInputFragment
+            - addUrlToAutocomplete(url: String)
+            - onCommit()
+            - normalizeUrlAndSearchTerms(input: String): <Boolean, String, String?>
+            - onSearch(query: String, isSuggestion: Boolean, alwaysSearch: Boolean)
+            - openUrl(url: String, searchTerms: String?)
+            - onFilter(searchText: String)
+            - onTextChange(text: String, autocompleteText: String)
+        }
+
+        class SearchSuggestionsFragment #LightSkyBlue {
+            - job : Job
+            + searchSuggestionsViewModel: SearchSuggestionsViewModel
+            - buildEnableSearchSuggestionsSubtitle(): SpannableString
+        }
+
+        class SuggestionsAdapter #LightSkyBlue {
+            - clickListener(s: String): Unit
+            - suggestions: List<SpannableStringBuilder>
+            - pendingJob: Job
+            + refresh(suggestions: List<SpannableStringBuilder>)
+        }
+
+        class SuggestionViewHolder #LightSkyBlue {
+            + itemView: View
+            + suggestionText: TextView
+            - clickListener(s: String): Unit
+            + bind(suggestion: SpannableStringBuilder)
+        }
+
+    }
+
+}
+
+
+/' region external dependencies '/
+namespace mozilla.components.browser #AntiqueWhite {
+    namespace browser {
+        class Session {
+
+        }
+
+    }
+
+    namespace search {
+        class SearchEngineManager #LightSkyBlue{
+            - providers: List<SearchEngineProvider>
+            + defaultSearchEngine: SearchEngine?
+            + loadAsync(context: Context): Deferred<SearchEngineList>
+            + load(context: Context): Deferred<SearchEngineList>
+            - getSearchEngineList(context: Context): SearchEngineList
+        }
+
+        class SearchEngine #LightSkyBlue{
+            + identifier: String
+            + name: String
+            + icon: Bitmap
+            - resultsUris: List<Uri>
+            - suggestUri: Uri
+            
+            + buildSearchUrl(searchTerm: String): String
+            + buildSuggestionsURL(searchTerm: String): String
+        }
+    }
+
+    namespace session {
+        class SessionManager {
+            + size : Int
+            + createSnapshot(): Snapshot
+            + createSessionSnapshot(session: Session): Snapshot.Item
+            + selectedSession : Session
+            + sessions : List<Session>
+            + all: List<Session>
+            + add(sessions: List<Session>)
+        }
+    }
+}
+
+/'end region external dependencies '/
+
+
+' activities
+org.mozilla.focus.activity.MainActivity -up-|> org.mozilla.focus.locale.LocaleAwareAppCompatActivity
+org.mozilla.focus.activity.MainActivity "1" -down-* "1" org.mozilla.focus.FocusApplication: contains
+
+' fragment
+org.mozilla.focus.fragment.UrlInputFragment -up-|> org.mozilla.focus.locale.LocaleAwareFragment
+org.mozilla.focus.SearchSuggestionsViewModel "1" -[#Blue]down-* "1" org.mozilla.focus.fragment.UrlInputFragment : contains
+org.mozilla.focus.fragment.BrowserFragment -up-|> org.mozilla.focus.fragment.WebFragment
+org.mozilla.focus.fragment.BrowserFragment "0...n" -up-> "1" mozilla.components.browser.session.SessionManager : uses
+org.mozilla.focus.fragment.BrowserFragment "0...n" --* "1" org.mozilla.focus.activity.MainActivity
+org.mozilla.focus.fragment.UrlInputFragment "0...1" --* "1" org.mozilla.focus.activity.MainActivity
+org.mozilla.focus.fragment.SearchSuggestionsFragment "1" -[#Blue]down-* "1" org.mozilla.focus.fragment.UrlInputFragment
+org.mozilla.focus.fragment.SearchSuggestionsFragment +-[#Blue]- org.mozilla.focus.fragment.SuggestionsAdapter
+org.mozilla.focus.fragment.SearchSuggestionsFragment +-[#Blue]- org.mozilla.focus.fragment.SuggestionViewHolder
+org.mozilla.focus.fragment.SearchSuggestionsFragment "0...n" -[#Blue]up-> "1" mozilla.components.browser.search.SearchEngineManager : uses
+mozilla.components.browser.search.SearchEngine "1...n" -[#Blue]down-* "1" mozilla.components.browser.search.SearchEngineManager : contains
+' external
+mozilla.components.browser.session.SessionManager "1" o-- "n" mozilla.components.browser.session.Session: contains
+
+right footer
+
+
+    PlantUML diagram generated by SketchIt! (https://bitbucket.org/pmesmeur/sketch.it)
+    For more information about this tool, please contact philippe.mesmeur@gmail.com
+endfooter
+
+@enduml

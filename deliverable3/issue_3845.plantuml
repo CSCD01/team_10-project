@@ -1,0 +1,391 @@
+@startuml
+
+title __WEBVIEW's Class Diagram__\n
+/' region MainActivity '/
+namespace org.mozilla.focus #LightYellow {
+  note top of FocusApplication : Application entry point
+  class FocusApplication {
+    + components : Components
+    - enableStrictMode()
+  }
+
+  class Components {
+    + sessionManager: SessionManager
+    + searchEngineManager : SearchEngineManager
+  }
+
+  namespace activity #Orange {
+    class MainActivity {
+      # isCustomTabMode: Boolean
+      # currentSessionForActivity: Session
+      - intentProcessor: IntentProcessor
+      - previousSessionCount: Int
+      - registerSessionObserver()
+      - showUrlInputScreen()
+      - showBrowserScreenForCurrentSession()
+      - checkBiometricStillValid()
+    }
+
+    class SettingsActivity {
+      {static} + SHOULD_OPEN_PRIVACY_EXTRA: "shouldOpenPrivacy"
+      {static} + SHOULD_OPEN_MOZILLA_EXTRA: "shouldOpenMozilla"
+      {static} + SHOULD_OPEN_GENERAL_EXTRA = "shouldOpenGeneral"
+    }
+
+    class CustomTabActivity {
+      - customTabId: String
+      - customTabSession: Session
+      - currentSessionForActivity: Session
+      - isCustomTabMode: Boolean
+    }
+
+  }
+
+  namespace biometrics #Orange {
+    class Biometrics {
+      + hasFingerprintHardware(context: Context): Boolean
+      + isBiometricsEnabled(context: Context): Boolean
+    }
+  }
+
+  namespace fragment #Orange {
+    abstract class WebFragment {
+      - webViewInstance: IWebView
+      - isWebViewAvailable: Boolean
+      {abstract} + session: Session
+      {abstract} + initialUrl: String
+      {abstract} + inflateLayout(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View
+      {abstract} + onCreateViewCalled()
+      # getWebView(): IWebView
+      - loadInitialUrl()
+      - restoreStateOrLoadUrl()
+    }
+    class BrowserFragment {
+      - pendingDownload: Download
+      - backgroundTransitionGroup: TransitionDrawableGroup
+      - urlView: TextView
+      - progressView: AnimatedProgressBar
+      - blockView: FrameLayout
+      - securityView: ImageView
+      - menuView: ImageButton
+      - statusBar: View
+      - urlBar: View
+      - popupTint: FrameLayout
+      - swipeRefresh: SwipeRefreshLayout
+      - historyView: ReyclerView
+      - menuWeakReference: WeakReference<BrowserMenu>
+    }
+    class UrlInputFragment {
+      - session: Session
+      {static} createWithoutSession(): UrlInputFragment
+      {static} createWithSession(session: Session, urlView: View): UrlInputFragment
+    }
+    class HistoryFragment #LightSkyBlue {
+      - historyList: HistoryList
+      + {static} create(webView: IWebView): HistoryFragment
+    }
+  }
+
+  namespace locale #Orange {
+    class LocaleAwareAppCompatActivity {
+
+    }
+    class LocaleAwareApplication {
+
+    }
+    class LocaleAwareFragment {
+
+    }
+  }
+
+  namespace session #Orange {
+    class IntentProcessor {
+      + handleIntent(context: Context, intent: SafeIntent, savedInstanceState: Bundle?): Session?
+      + handleNewIntent(context: Context, intent: SafeIntent)
+      - createSessionFromIntent(context: Context, intent: SafeIntent) : Session?
+      - createSession(source: Session.Source, url: String): Session
+    }
+
+    class SessionNotificationService {
+      - buildNotification(): Notification
+      {static} start(context: Context)
+      {static} stop(context: Context)
+    }
+  }
+
+  namespace web #Orange {
+    interface IWebViewProvider {
+      {abstract} + preload(context: Context)
+      {abstract} + create(context: Context, attributeSet: AttributeSet?): View
+      {abstract} + performCleanup(context: Context)
+      {abstract} + performNewBrowserSessionCleanup()
+      {abstract} + requestMobileSite(context: Context, webSettings: WebSettings)
+      {abstract} + requestDesktopSite(webSettings: WebSettings)
+      {abstract} + applyAppSettings(context: Context, webSettings: WebSettings, systemWebView: SystemWebView)
+      {abstract} + disableBlocking(webSettings: WebSettings, systemWebView: SystemWebView)
+      {abstract} + getUABrowserString(existingUAString: String, focusToken: String): String
+    }
+
+    interface IWebView {
+      {abstract} + canGoBack()
+      {abstract} + canGoForward()
+      {abstract} + cleanup()
+      {abstract} + clearMatches()
+      {abstract} + destroy()
+      {abstract} + exitFullscreen()
+      {abstract} + findAllAsync()
+      {abstract} + findNext()
+      {abstract} + getTitle()
+      {abstract} + getUrl()
+      {abstract} + goBack()
+      {abstract} + goForward()
+      {abstract} + loadData()
+      {abstract} + loadUrl()
+      {abstract} + onPause()
+      {abstract} + onResume()
+      {abstract} + releaseGeckoSession()
+      {abstract} + reload()
+      {abstract} + restoreWebViewState()
+      {abstract} + saveWebViewState()
+      {abstract} + setBlockingEnabled()
+      {abstract} + setCallback()
+      {abstract} + setFindListener()
+      {abstract} + setRequestDesktop()
+      {abstract} + stopLoading()
+    }
+
+    class WebViewProvider {
+      + engine: IWebViewProvider
+    }
+    class ClassicWebViewProvider {
+    }
+    class GeckoWebViewProvider {
+      + sessionHistoryMap : HashMap<GeckoSession, HistoryList>
+    }
+  }
+
+  namespace webview #Orange {
+    class NestedWebView {
+
+    }
+    class SystemWebView {
+      - client: FocusWebViewClient
+    }
+
+    class TrackingProtectionWebViewClient {
+      + isBlockingEnabled()
+      + shouldInterceptRequest(final WebView view, final WebResourceRequest request): WebResourceResponse
+      + notifyCurrentURL(final String url)
+      + onPageStarted(WebView view, String url, Bitmap favicon)
+      + onReceivedHttpAuthRequest(WebView view, final HttpAuthHandler handler, String host, String realm)
+    }
+    class FocusWebViewClient {
+
+    }
+  }
+
+}
+
+
+/' region external dependencies '/
+namespace mozilla.components.browser #AntiqueWhite {
+  namespace browser {
+    class Session {
+
+    }
+  }
+
+  namespace search {
+    class SearchEngineManager {
+      - providers: List<SearchEngineProvider>
+      + defaultSearchEngine: SearchEngine?
+      + loadAsync(context: Context): Deferred<SearchEngineList>
+      + load(context: Context): Deferred<SearchEngineList>
+      - getSearchEngineList(context: Context): SearchEngineList
+    }
+  }
+
+  namespace session {
+    class SessionManager {
+      + size : Int
+      + createSnapshot(): Snapshot
+      + createSessionSnapshot(session: Session): Snapshot.Item
+      + selectedSession : Session
+      + sessions : List<Session>
+      + all: List<Session>
+      + add(sessions: List<Session>)
+    }
+  }
+
+}
+
+namespace org.mozilla.geckoview #LightSkyBlue {
+  class GeckoView {
+    - mSession : GeckoSession
+
+    + setSession(var1: GeckoSession)
+    + getSession() : GeckoSession
+    + restoreSession(var1: GeckoSession)
+  }
+
+  class GeckoSession {
+    - mHistoryHandler : GeckoSessionHandler<HistoryDelegate>
+    + setHistoryDelegate(var1 HistoryDelegate)
+    + getHistoryDelegate() : HistoryDelegate
+  }
+
+  class GeckoSessionHandler <Delegate> {
+    - mDelegate : Delegate
+    + getDelegate() : Delegate
+    + setDelegate(var1 Delegate, var2 GeckoSession)
+  }
+
+  interface HistoryDelegate {
+    + onHistoryStateChange(var1 GeckoSession, var2 HistoryList)
+  }
+
+  interface HistoryList {
+    + getCurrentIndex() : int
+  }
+
+  interface HistoryItem {
+    + String getUri() : String
+    + String getTitle() : String
+  }
+}
+
+
+namespace android #LightGreen {
+  namespace webkit {
+    class WebViewClient {
+    }
+    class WebView {
+    }
+  }
+
+  namespace app {
+    class Application {
+
+    }
+
+    class Service {
+
+    }
+
+    class Notification {
+
+    }
+  }
+
+  namespace widget {
+    class FrameLayout {
+
+    }
+  }
+}
+
+namespace androidx #LightGreen {
+  namespace appcompat {
+    namespace app {
+      class AppCompatActivity {
+
+      }
+    }
+  }
+
+  namespace fragment {
+    namespace app {
+      class Fragment {
+
+      }
+    }
+  }
+
+}
+
+/'end region external dependencies '/
+
+' application
+org.mozilla.focus.FocusApplication -up-|> org.mozilla.focus.locale.LocaleAwareApplication
+org.mozilla.focus.FocusApplication o-- org.mozilla.focus.Components
+org.mozilla.focus.Components *-up- mozilla.components.browser.session.SessionManager
+org.mozilla.focus.Components *-up- mozilla.components.browser.search.SearchEngineManager
+
+'locale
+org.mozilla.focus.locale.LocaleAwareAppCompatActivity --|> androidx.appcompat.app.AppCompatActivity
+org.mozilla.focus.locale.LocaleAwareApplication --|> android.app.Application
+org.mozilla.focus.locale.LocaleAwareFragment --|> androidx.fragment.app.Fragment
+
+' session
+org.mozilla.focus.session.SessionNotificationService --|> android.app.Service
+org.mozilla.focus.session.SessionNotificationService "1" -->  "0...n" android.app.Notification : creates
+
+' web
+org.mozilla.focus.web.IWebViewProvider --> org.mozilla.focus.web.IWebView : provides
+org.mozilla.focus.web.WebViewProvider -up-|> org.mozilla.focus.web.IWebViewProvider
+org.mozilla.focus.web.ClassicWebViewProvider -up-|> org.mozilla.focus.web.IWebViewProvider
+org.mozilla.focus.web.GeckoWebViewProvider -up-|> org.mozilla.focus.web.IWebViewProvider
+org.mozilla.focus.web.IWebViewProvider --> org.mozilla.focus.webview.SystemWebView : modifies
+
+' webview
+org.mozilla.focus.webview.SystemWebView -up-|> org.mozilla.focus.webview.NestedWebView
+org.mozilla.focus.webview.SystemWebView --|> org.mozilla.focus.web.IWebView
+org.mozilla.focus.webview.NestedWebView -up-|> android.webkit.WebView
+org.mozilla.focus.webview.TrackingProtectionWebViewClient -up-|> android.webkit.WebViewClient
+org.mozilla.focus.webview.FocusWebViewClient -up-|> org.mozilla.focus.webview.TrackingProtectionWebViewClient
+
+' activities
+org.mozilla.focus.activity.MainActivity -up-|> org.mozilla.focus.locale.LocaleAwareAppCompatActivity
+org.mozilla.focus.activity.MainActivity --> org.mozilla.focus.biometrics.Biometrics :uses
+org.mozilla.focus.activity.MainActivity "1" -down-* "1" org.mozilla.focus.FocusApplication: contains
+
+org.mozilla.focus.activity.SettingsActivity -up-|> org.mozilla.focus.locale.LocaleAwareAppCompatActivity
+org.mozilla.focus.activity.SettingsActivity "0...1" -down-* "1" org.mozilla.focus.FocusApplication: contains
+
+org.mozilla.focus.activity.CustomTabActivity -up-|> org.mozilla.focus.activity.MainActivity
+org.mozilla.focus.activity.CustomTabActivity "n" o-- "1" mozilla.components.browser.session.Session
+org.mozilla.focus.activity.CustomTabActivity "n" --> "1" mozilla.components.browser.session.SessionManager: use
+
+' fragment
+org.mozilla.focus.fragment.WebFragment -up-|> org.mozilla.focus.locale.LocaleAwareFragment
+org.mozilla.focus.fragment.UrlInputFragment -up-|> org.mozilla.focus.locale.LocaleAwareFragment
+org.mozilla.focus.fragment.BrowserFragment -up-|> org.mozilla.focus.fragment.WebFragment
+org.mozilla.focus.fragment.BrowserFragment "0...n" -up-> "1" mozilla.components.browser.session.SessionManager : uses
+org.mozilla.focus.fragment.WebFragment o-- org.mozilla.focus.web.IWebView: contains
+org.mozilla.focus.fragment.WebFragment "0...n" o-- "1" mozilla.components.browser.session.Session: contains
+org.mozilla.focus.fragment.BrowserFragment "0...n" --* "1" org.mozilla.focus.activity.MainActivity
+org.mozilla.focus.fragment.UrlInputFragment "0...1" --* "1" org.mozilla.focus.activity.MainActivity
+
+' external
+mozilla.components.browser.session.SessionManager "1" o-- "n" mozilla.components.browser.session.Session: contains
+
+' issue 3845
+org.mozilla.focus.fragment.BrowserFragment "1" -[#BlueViolet]-> "1" org.mozilla.focus.activity.MainActivity : creates
+org.mozilla.focus.fragment.BrowserFragment "1" -[#BlueViolet]-> "1" org.mozilla.focus.activity.MainActivity : displays
+
+org.mozilla.focus.fragment.HistoryFragment -[#BlueViolet]-> org.mozilla.focus.web.IWebView
+org.mozilla.focus.fragment.HistoryFragment "0...n" -[#BlueViolet]- "1" org.mozilla.focus.activity.MainActivity
+org.mozilla.focus.fragment.HistoryFragment "0...n" -[#BlueViolet]-> "1" org.mozilla.focus.web.GeckoWebViewProvider
+org.mozilla.focus.fragment.HistoryFragment "1" -[#BlueViolet]-> "1" org.mozilla.focus.web.GeckoView
+org.mozilla.focus.fragment.HistoryFragment "1" -[#BlueViolet]-* "1" mozilla.components.browser.session.Session: contains
+org.mozilla.focus.web.GeckoWebViewProvider "1" o-[#BlueViolet]- "0...n" org.mozilla.geckoview.HistoryList
+org.mozilla.focus.web.GeckoWebViewProvider "1" o-[#BlueViolet]- "0...n" org.mozilla.geckoview.GeckoSession
+
+org.mozilla.geckoview.HistoryItem "0...n" -[#BlueViolet]-o "1" org.mozilla.geckoview.HistoryList
+
+org.mozilla.focus.fragment.HistoryFragment "1" -[#BlueViolet]-> "1" org.mozilla.geckoview.HistoryList: displays
+
+
+org.mozilla.geckoview.GeckoView  --|> android.widget.FrameLayout
+org.mozilla.geckoview.GeckoSession "1" -[#BlueViolet]-* "1" org.mozilla.geckoview.GeckoView
+org.mozilla.geckoview.HistoryDelegate "1" -[#BlueViolet]-* "1" org.mozilla.geckoview.GeckoSessionHandler
+org.mozilla.geckoview.GeckoSessionHandler "1" -[#BlueViolet]-* "11" org.mozilla.geckoview.GeckoSession
+
+right footer
+
+
+  PlantUML diagram generated by SketchIt! (https://bitbucket.org/pmesmeur/sketch.it)
+  For more information about this tool, please contact philippe.mesmeur@gmail.com
+endfooter
+
+@enduml
