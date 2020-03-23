@@ -28,7 +28,7 @@ namespace org.mozilla.focus #LightYellow {
 
     }
 
-    class SearchSuggestionsViewModel {
+    class SearchSuggestionsViewModel #LightSkyBlue {
         - SearchSuggestionsFetcher : fetcher
         - SearchSuggestionsPreferences : preferences
         + selectSearchSuggestion(suggestion: String, alwaysSearch: Boolean)
@@ -67,7 +67,7 @@ namespace org.mozilla.focus #LightYellow {
             - swipeRefresh: SwipeRefreshLayout
             - menuWeakReference: WeakReference<BrowserMenu>
         }
-        class UrlInputFragment {
+        class UrlInputFragment #LightSkyBlue {
             - session: Session
             - searchSuggestionsViewModel: SearchSuggestionsViewModel
             {static} createWithoutSession(): UrlInputFragment
@@ -80,6 +80,27 @@ namespace org.mozilla.focus #LightYellow {
             - onFilter(searchText: String)
             - onTextChange(text: String, autocompleteText: String)
         }
+
+        class SearchSuggestionsFragment #LightSkyBlue {
+            - job : Job
+            + searchSuggestionsViewModel: SearchSuggestionsViewModel
+            - buildEnableSearchSuggestionsSubtitle(): SpannableString
+        }
+
+        class SuggestionsAdapter #LightSkyBlue {
+            - clickListener(s: String): Unit
+            - suggestions: List<SpannableStringBuilder>
+            - pendingJob: Job
+            + refresh(suggestions: List<SpannableStringBuilder>)
+        }
+
+        class SuggestionViewHolder #LightSkyBlue {
+            + itemView: View
+            + suggestionText: TextView
+            - clickListener(s: String): Unit
+            + bind(suggestion: SpannableStringBuilder)
+        }
+
     }
 
 }
@@ -95,12 +116,23 @@ namespace mozilla.components.browser #AntiqueWhite {
     }
 
     namespace search {
-        class SearchEngineManager {
+        class SearchEngineManager #LightSkyBlue{
             - providers: List<SearchEngineProvider>
             + defaultSearchEngine: SearchEngine?
             + loadAsync(context: Context): Deferred<SearchEngineList>
             + load(context: Context): Deferred<SearchEngineList>
             - getSearchEngineList(context: Context): SearchEngineList
+        }
+
+        class SearchEngine #LightSkyBlue{
+            + identifier: String
+            + name: String
+            + icon: Bitmap
+            - resultsUris: List<Uri>
+            - suggestUri: Uri
+            
+            + buildSearchUrl(searchTerm: String): String
+            + buildSuggestionsURL(searchTerm: String): String
         }
     }
 
@@ -131,7 +163,11 @@ org.mozilla.focus.fragment.BrowserFragment -up-|> org.mozilla.focus.fragment.Web
 org.mozilla.focus.fragment.BrowserFragment "0...n" -up-> "1" mozilla.components.browser.session.SessionManager : uses
 org.mozilla.focus.fragment.BrowserFragment "0...n" --* "1" org.mozilla.focus.activity.MainActivity
 org.mozilla.focus.fragment.UrlInputFragment "0...1" --* "1" org.mozilla.focus.activity.MainActivity
-
+org.mozilla.focus.fragment.SearchSuggestionsFragment "1" -down-* "1" org.mozilla.focus.fragment.UrlInputFragment
+org.mozilla.focus.fragment.SearchSuggestionsFragment +-- org.mozilla.focus.fragment.SuggestionsAdapter
+org.mozilla.focus.fragment.SearchSuggestionsFragment +-- org.mozilla.focus.fragment.SuggestionViewHolder
+org.mozilla.focus.fragment.SearchSuggestionsFragment "0...n" -up-> "1" mozilla.components.browser.search.SearchEngineManager : uses
+mozilla.components.browser.search.SearchEngine "1...n" -down-* "1" mozilla.components.browser.search.SearchEngineManager : contains
 ' external
 mozilla.components.browser.session.SessionManager "1" o-- "n" mozilla.components.browser.session.Session: contains
 
