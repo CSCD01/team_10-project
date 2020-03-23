@@ -158,16 +158,16 @@ org.mozilla.focus.activity.MainActivity "1" -down-* "1" org.mozilla.focus.FocusA
 
 ' fragment
 org.mozilla.focus.fragment.UrlInputFragment -up-|> org.mozilla.focus.locale.LocaleAwareFragment
-org.mozilla.focus.SearchSuggestionsViewModel "1" -down-* "1" org.mozilla.focus.fragment.UrlInputFragment : contains
+org.mozilla.focus.SearchSuggestionsViewModel "1" -[#Blue]down-* "1" org.mozilla.focus.fragment.UrlInputFragment : contains
 org.mozilla.focus.fragment.BrowserFragment -up-|> org.mozilla.focus.fragment.WebFragment
 org.mozilla.focus.fragment.BrowserFragment "0...n" -up-> "1" mozilla.components.browser.session.SessionManager : uses
 org.mozilla.focus.fragment.BrowserFragment "0...n" --* "1" org.mozilla.focus.activity.MainActivity
 org.mozilla.focus.fragment.UrlInputFragment "0...1" --* "1" org.mozilla.focus.activity.MainActivity
-org.mozilla.focus.fragment.SearchSuggestionsFragment "1" -down-* "1" org.mozilla.focus.fragment.UrlInputFragment
-org.mozilla.focus.fragment.SearchSuggestionsFragment +-- org.mozilla.focus.fragment.SuggestionsAdapter
-org.mozilla.focus.fragment.SearchSuggestionsFragment +-- org.mozilla.focus.fragment.SuggestionViewHolder
-org.mozilla.focus.fragment.SearchSuggestionsFragment "0...n" -up-> "1" mozilla.components.browser.search.SearchEngineManager : uses
-mozilla.components.browser.search.SearchEngine "1...n" -down-* "1" mozilla.components.browser.search.SearchEngineManager : contains
+org.mozilla.focus.fragment.SearchSuggestionsFragment "1" -[#Blue]down-* "1" org.mozilla.focus.fragment.UrlInputFragment
+org.mozilla.focus.fragment.SearchSuggestionsFragment +-[#Blue]- org.mozilla.focus.fragment.SuggestionsAdapter
+org.mozilla.focus.fragment.SearchSuggestionsFragment +-[#Blue]- org.mozilla.focus.fragment.SuggestionViewHolder
+org.mozilla.focus.fragment.SearchSuggestionsFragment "0...n" -[#Blue]up-> "1" mozilla.components.browser.search.SearchEngineManager : uses
+mozilla.components.browser.search.SearchEngine "1...n" -[#Blue]down-* "1" mozilla.components.browser.search.SearchEngineManager : contains
 ' external
 mozilla.components.browser.session.SessionManager "1" o-- "n" mozilla.components.browser.session.Session: contains
 
