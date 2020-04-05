@@ -58,16 +58,16 @@
 
 | Criteria | Grade |
 | :------- | :-----: |
-| Bugs Intro (10) |  |  
-| Choice of bugs (5) |  |  
-| Correctness (25) |  |  
-| Documentation (10) |  |
-| Test Suite (10) |  | 
-| Software Process (25) |  |
-| Presentation (15) |  |
+| Bugs Intro (10) | 10 |  
+| Choice of bugs (5) | 5 |  
+| Correctness (25) | 20 |  
+| Documentation (10) | 10 |
+| Test Suite (10) | 10 | 
+| Software Process (25) | 25 |
+| Presentation (15) | 15 |
 
-**Total (100)**:   
-**Comments**:    
+**Total (100)**: 95  
+**Comments**: Automated check failed for issue #4395 due to unused imports    
 
 ### Interview 2
 
@@ -90,14 +90,14 @@
 
 | Criteria | Grade |
 | :------- | :-----: |
-| Issue Description (10) |  |  
-| Implementation Plans (10) |  |  
-| Test (5) |  |  
-| Architecture (10) |  |
-| Presentation (10) |  |  
+| Issue Description (10) | 10 |  
+| Implementation Plans (10) | 10 |  
+| Test (5) | 5 |  
+| Architecture (10) | 10 |
+| Presentation (10) | 6 |  
 
-**Total (45)**:   
-**Comments**:   
+**Total (45)**: 41  
+**Comments**: Some mistakes: "We ultimately decided on the feature #2 - “Consider implementing long press on back button to open the back stack” - because of difficulties encountered when prototyping the first issue", this is not feature #2. It would've been better if the images were included in the pdf, with a link to view the image in more detail.  
 
 ### Interview 3
 
