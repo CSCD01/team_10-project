@@ -118,16 +118,17 @@
 
 | Criteria | Grade |
 | :------- | :-----: |
-| Implementation (40) |  |  
-| Testing (20) |  |  
-| User Guide(s) (10) |  |  
-| Design Document (10) |  |
-| Process (20) |  |  
-| Compared with other teams (10) |  |  
-| Presentation (10) |  |  
+| Implementation (40) | 40 |  
+| Testing (20) | 20 |  
+| User Guide(s) (10) | 10 |  
+| Design Document (10) | 10 |
+| Process (20) | 18 |  
+| Compared with other teams (10) | ? |  
+| Presentation (10) | 9 |  
 
-**Total (120)**:   
-**Comments**:   
+**Total (120)**: 107 + ?  
+**Comments**: All commits were made on the same branch.      
+Flow of the presentation is off, user guide should be first and then it can be followed by other sections.  
 
 ### Interview 4
 
